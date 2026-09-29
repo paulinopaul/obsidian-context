@@ -11,31 +11,50 @@ metadata:
 
 Habilidad modular para gobernar el conocimiento técnico persistente de los agentes en Obsidian. Transforma las decisiones de diseño, fragmentos de código, directrices del chat y selecciones tecnológicas en un Grafo de Conocimiento conectado mediante `[[wikilinks]]`.
 
-## Funcionalidades Principales
+---
 
-1. **Recomendación y Análisis de Stack (`scripts/tech_analytics.py`)**:
-   - Analiza el historial de proyectos para identificar las tecnologías más utilizadas por dominio.
-   - Permite al modelo y al usuario decidir si continuar con la pila probada o experimentar con nuevas alternativas.
-2. **Registro de Conocimiento de Proyecto (`scripts/save_knowledge.py`)**:
-   - Guarda un resumen estructurado similar al cierre de planning-with-files: tecnologías empleadas, estrategias aplicadas, decisiones descartadas y directrices clave dadas en el chat.
-   - Genera/actualiza automáticamente los hubs de tecnologías (`Technologies/[[Tecnología]]`) para visibilidad inmediata en el Obsidian Graph View.
-3. **Búsqueda Semántica Vectorial Robusta (`scripts/search_context.py`)**:
-   - Inferencia local mediante `ChromaDB` con soporte nativo de `ONNXRuntime` (modelo `all-MiniLM-L6-v2`), tolerante a fallos y sin dependencias pesadas de GPU/PyTorch.
-4. **Sincronizador de Bóveda (`scripts/sync_vault.py`)**:
-   - Sincroniza e indexa incrementalmente archivos Markdown de la bóveda hacia el almacenamiento vectorial.
+## 🤖 Protocolo Operativo para Agentes de IA (AGY, OpenCode, Claude Code)
 
-## Uso Rápido por Línea de Comandos
+Cualquier modelo ejecutándose bajo Antigravity (AGY), OpenCode o Claude Code debe aplicar esta skill siguiendo este ciclo de vida:
 
-```bash
-# Analizar las tecnologías más utilizadas
-python3 ~/.agents/skills/obsidian-context/scripts/tech_analytics.py --top 5
+### 1. Al Iniciar una Tarea o Proyecto (Fase de Exploración)
+Antes de proponer arquitecturas o stacks tecnológicos desde cero:
+1. **Ejecutar Búsqueda Semántica**:
+   ```bash
+   python3 ~/.agents/skills/obsidian-context/scripts/search_context.py --query "<descripción del problema o tecnologías en cuestión>"
+   ```
+2. **Consultar Frecuencia y Recomendación de Stack**:
+   ```bash
+   python3 ~/.agents/skills/obsidian-context/scripts/tech_analytics.py --domain "<dominio-técnico>"
+   ```
+3. **Preguntar al Usuario**: Si existe un stack histórico probado, presentar al usuario:
+   > *"Históricamente para tareas de tipo `<dominio>` se ha utilizado `<stack_top>`. ¿Deseas reutilizar esta pila o explorar una alternativa?"*
 
-# Recomendar stack para un dominio específico
-python3 ~/.agents/skills/obsidian-context/scripts/tech_analytics.py --domain backend-rag
+### 2. Al Concluir un Proyecto o Hito Mayor (Fase de Cierre)
+Una vez finalizada la implementación y superada la suite de pruebas:
+1. **Persistir el Conocimiento Estructurado**:
+   Invocar `scripts/save_knowledge.py` o la herramienta MCP `tool_save_project_knowledge`:
+   ```bash
+   python3 ~/.agents/skills/obsidian-context/scripts/save_knowledge.py \
+     --name "<nombre_proyecto>" \
+     --domain "<dominio>" \
+     --techs "Tecnología1" "Tecnología2" \
+     --strategies "Estrategia1" "Estrategia2" \
+     --decisions "<decisiones clave y alternativas descartadas>" \
+     --instructions "<directrices o indicaciones recibidas en el chat>" \
+     --code "<fragmento crítico de código>"
+   ```
+2. **Sincronizar Vectores**:
+   ```bash
+   python3 ~/.agents/skills/obsidian-context/scripts/sync_vault.py
+   ```
 
-# Búsqueda semántica en la memoria histórica
-python3 ~/.agents/skills/obsidian-context/scripts/search_context.py --query "estrategias de persistencia en obsidian"
+---
 
-# Sincronizar la bóveda completa con ChromaDB
-python3 ~/.agents/skills/obsidian-context/scripts/sync_vault.py
-```
+## 🛠️ Herramientas y Scripts Disponibles
+
+- `scripts/save_knowledge.py`: Genera notas enriquecidas en `Projects/` y actualiza fichas técnicas en `Technologies/` para el Obsidian Graph View.
+- `scripts/tech_analytics.py`: Calcula estadísticas de frecuencias globales y formula recomendaciones contextuales por dominio.
+- `scripts/search_context.py`: Ejecuta búsqueda semántica local con `ChromaDB` y `ONNXRuntime` (`DefaultEmbeddingFunction`).
+- `scripts/sync_vault.py`: Sincroniza e indexa incrementalmente notas hacia ChromaDB.
+- `scripts/chat_summary_extract.py`: Parsea notas crudas de sesión para estructurar el resumen técnico.

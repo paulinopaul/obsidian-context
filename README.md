@@ -1,155 +1,150 @@
 # 🧠 Obsidian Context Agent Skill (`obsidian-context`)
 
+[ English | [Español](README.es.md) ]
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform: Antigravity | OpenCode | Claude](https://img.shields.io/badge/Platform-Antigravity%20%7C%20OpenCode%20%7C%20Claude-purple.svg)]()
 [![Embeddings: Local ONNX](https://img.shields.io/badge/Embeddings-Local%20ONNX-green.svg)]()
 
-> **Agent Skill para la persistencia del conocimiento de proyectos, análisis de stack tecnológico y visualización en el Grafo de Obsidian mediante enlaces bidireccionales (`[[wikilinks]]`).**
+> **Agent Skill for persistent engineering memory, tech stack analytics, and Obsidian Graph View visualization using bidirectional wikilinks (`[[wikilinks]]`).**
 
 ---
 
-## 📌 ¿Qué problema resuelve?
+## 📌 Problem Solved
 
-Durante las sesiones de programación en agentes de IA (Antigravity, OpenCode, Claude Code), el contexto volátil se pierde al cerrar el chat. `obsidian-context` permite:
+AI coding agents (Antigravity, OpenCode, Claude Code) operate with volatile memory that is lost once a session terminates. `obsidian-context` enables:
 
-1. **Persistencia Estructurada de Cierre**: Guarda un resumen técnico del proyecto (tecnologías empleadas, estrategias aplicadas, decisiones de arquitectura y directrices dadas en el chat) sin necesidad de inspeccionar logs crudos de ejecución.
-2. **Visualización en el Obsidian Graph View**: Al conectar automáticamente cada nota de proyecto con fichas técnicas en `Technologies/[[Tecnología]]`, se genera una red visual que muestra la constelación de herramientas utilizadas en todos tus proyectos.
-3. **Analítica de Stack y Recomendación**: Permite a los agentes analizar cuáles son las tecnologías más utilizadas históricamente para un tipo de tarea (`web`, `cli`, `ai`, etc.) y consultar al usuario si desea reutilizar la pila probada o explorar una alternativa.
-4. **Inferencia Vectorial Liviana (Cero PyTorch/CUDA)**: Utiliza `DefaultEmbeddingFunction` de ChromaDB sobre `ONNXRuntime` local (`all-MiniLM-L6-v2`, 384 dimensiones), eliminando los ~2GB de dependencias pesadas de `sentence-transformers`.
+1. **Structured Project Knowledge Retention**: Captures technical decisions, libraries used, architectural trade-offs, and critical chat instructions upon completing tasks.
+2. **Obsidian Graph View Exploration**: Automatically links project notes to centralized hub notes in `Technologies/[[Technology]]`, generating a visual knowledge graph across all your repositories.
+3. **Tech Stack Analytics & Recommendations**: Analyzes historical usage to determine which libraries are most frequently used for specific domains (`web`, `cli`, `ai`, `networking`) and queries the user whether to reuse the proven stack or adopt a new one.
+4. **Lightweight Local Embeddings (Zero PyTorch/CUDA)**: Powered by ChromaDB's `DefaultEmbeddingFunction` via native `ONNXRuntime` (`all-MiniLM-L6-v2`, 384 dimensions), eliminating the heavy ~2 GB footprint of `sentence-transformers`.
 
 ---
 
-## 🏗️ Arquitectura del Repositorio
+## 🏗️ Repository Architecture
 
 ```
 obsidian-context/
-├── SKILL.md                  # Especificación estándar Agent Skill (frontmatter, hooks, roles)
-├── README.md                 # Documentación técnica completa y guía de uso
-├── LICENSE                   # Licencia MIT
-├── pyproject.toml            # Empaquetado estándar Python
-├── .gitignore                # Reglas de exclusión de compilados y caches
-├── schema_knowledge.json     # Esquema JSON estructurado para herramientas MCP/agentes
-├── task_plan.md              # Artefacto de planificación persistente (planning-with-files)
-├── findings.md               # Registro de descubrimientos de arquitectura
-├── progress.md               # Bitácora de ejecución y resultados de pruebas
-├── scripts/                  # Scripts ejecutables modulares (SOLID)
-│   ├── save_knowledge.py     # Guarda notas de proyecto y actualiza fichas en Technologies/
-│   ├── tech_analytics.py     # Análisis de frecuencias de stack y recomendador por dominio
-│   ├── search_context.py     # Búsqueda semántica vectorial local (ChromaDB + ONNX)
-│   ├── sync_vault.py         # Sincronizador incremental Bóveda <-> ChromaDB
-│   └── chat_summary_extract.py # Extractor estructurado de notas de sesión
-├── templates/                # Plantillas Markdown estructuradas
-│   ├── project_knowledge.md  # Salida persistente de proyectos (Stack, Decisiones, Código)
-│   ├── technology_hub.md     # Ficha técnica de catálogo en Technologies/
-│   └── postmortem.md         # Plantilla estándar para notas de Post-Mortem
+├── SKILL.md                  # Standard Agent Skill definition (frontmatter, agent protocols)
+├── README.md                 # English documentation and usage guide
+├── README.es.md              # Spanish documentation
+├── LICENSE                   # MIT License
+├── pyproject.toml            # Python packaging and entry points
+├── .gitignore                # Git exclusions
+├── schema_knowledge.json     # JSON schema for MCP tools and agents
+├── task_plan.md              # Persistent plan artifact (planning-with-files)
+├── findings.md               # Architecture discoveries and research
+├── progress.md               # TDD verification and session log
+├── scripts/                  # Modular executable scripts (SOLID)
+│   ├── save_knowledge.py     # Saves project notes and updates Technologies/ hubs
+│   ├── tech_analytics.py     # Analyzes tech frequencies and recommends stacks
+│   ├── search_context.py     # Local semantic search (ChromaDB + ONNXRuntime)
+│   ├── sync_vault.py         # Incremental Vault <-> ChromaDB synchronizer
+│   └── chat_summary_extract.py # Session notes parser
+├── templates/                # Standardized Markdown templates
+│   ├── project_knowledge.md  # Project summary note template
+│   ├── technology_hub.md     # Technology catalog note template
+│   └── postmortem.md         # Post-mortem template
 ├── references/
-│   └── graph_and_links.md    # Guía de interoperabilidad con Obsidian Graph View
+│   └── graph_and_links.md    # Obsidian Graph View semantic reference
 └── tests/
-    └── test_obsidian_context.py # Suite de pruebas automatizadas TDD
+    └── test_obsidian_context.py # Automated unit test suite (TDD)
 ```
 
 ---
 
-## 🚀 Instalación y Configuración
+## 🤖 How Coding Agents Use This Skill
 
-### 1. Clonar en el directorio de Agent Skills
+### 1. Antigravity (AGY)
+- **Discovery**: Registered globally via `~/.gemini/config/skills.json` (pointing to `~/.agents/skills`).
+- **MCP Integration**: Exposes 4 native MCP tools in `~/.gemini/config/mcp_config.json`:
+  - `tool_query_tech_stack`: Queries frequency stats and recommendations.
+  - `tool_save_project_knowledge`: Saves project summaries with wikilinks.
+  - `tool_semantic_search_obsidian`: Retrieves historical technical context.
+  - `tool_sync_obsidian_vault`: Syncs new notes into ChromaDB.
+- **Agent Lifecycle**: The agent automatically triggers semantic search during the architectural planning phase (Rule 20) and records structured summaries upon task completion.
+
+### 2. OpenCode
+- **Discovery**: Natively auto-discovered in `~/.agents/skills/obsidian-context` following the Agent Skills specification.
+- **Workflow**: Guided by global directives in `~/.agents/AGENTS.md`. At project initiation, OpenCode runs `tech_analytics.py --domain <domain>` to evaluate tested stacks; at project closure, it invokes `save_knowledge.py` to persist technical assets.
+
+### 3. Claude Code
+- **Discovery**: Symlinked to `~/.claude/skills/obsidian-context`:
+  ```bash
+  mkdir -p ~/.claude/skills
+  ln -s ~/.agents/skills/obsidian-context ~/.claude/skills/obsidian-context
+  ```
+- **Execution**: Can be invoked interactively via `/obsidian-context` or triggered automatically by Claude Code when analyzing historical project architecture or closing a complex task.
+
+---
+
+## 🚀 Installation & Setup
+
+### 1. Clone into Agent Skills Directory
 ```bash
-# Directorio estándar global de Agent Skills
 cd ~/.agents/skills
-git clone https://github.com/tu-usuario/obsidian-context.git
+git clone https://github.com/<your-username>/obsidian-context.git
 ```
 
-### 2. Instalar Dependencias
+### 2. Install Dependencies
 ```bash
 pip install chromadb onnxruntime mcp
 ```
 
-### 3. Variables de Entorno (Opcionales)
-Configura en tu `~/.bashrc` o `~/.zshrc`:
+### 3. Environment Variables (Optional)
 ```bash
 export OBSIDIAN_VAULT_PATH="$HOME/Documents/ObsidianVaults/context_ai"
 export CHROMA_DB_PATH="$OBSIDIAN_VAULT_PATH/chroma_storage"
 ```
-*(Si no se configuran, el sistema asumirá las rutas por defecto).*
 
 ---
 
-## 🛠️ Integración con Plataformas de Agentes
+## 💻 CLI Commands
 
-### Antigravity / Gemini CLI
-Agrega la skill en `~/.gemini/config/skills.json`:
-```json
-{
-  "entries": [
-    { "path": "~/.agents/skills" }
-  ]
-}
-```
-
-Para exponer las herramientas MCP en `~/.gemini/config/mcp_config.json`:
-```json
-{
-  "mcpServers": {
-    "obsidian-context": {
-      "command": "python3",
-      "args": ["-m", "mcp_server"]
-    }
-  }
-}
-```
-
-### OpenCode
-La skill es descubierta automáticamente al residir en `~/.agents/skills/obsidian-context`.
-
----
-
-## 💻 Uso por Línea de Comandos (CLI)
-
-### Analizar Tecnologías Más Utilizadas
+### Analyze Most Used Technologies
 ```bash
 python3 scripts/tech_analytics.py --top 10
 ```
 
-### Recomendar Stack para un Dominio
+### Get Recommendations for a Domain
 ```bash
-python3 scripts/tech_analytics.py --domain agent-skills
+python3 scripts/tech_analytics.py --domain backend-rag
 ```
 
-### Guardar Resumen de Conocimiento de un Proyecto
+### Save Project Knowledge
 ```bash
 python3 scripts/save_knowledge.py \
   --name "Network Analyzer" \
   --domain "networking" \
   --techs "Python" "Scapy" "FastAPI" \
   --strategies "TDD" "Clean-Architecture" \
-  --decisions "Adopción de Scapy para parsing de tramas Ethernet" \
-  --instructions "Validar permisos en sandbox antes de capturar tráfico" \
+  --decisions "Adopted Scapy for packet crafting over raw sockets" \
+  --instructions "Verify sandbox network permissions before sniffing" \
   --code "def capture(): pass"
 ```
 
-### Sincronizar Bóveda hacia ChromaDB
+### Sync Vault to ChromaDB
 ```bash
 python3 scripts/sync_vault.py
 ```
 
-### Búsqueda Semántica Vectorial
+### Semantic Search
 ```bash
-python3 scripts/search_context.py --query "estrategias de persistencia en obsidian"
+python3 scripts/search_context.py --query "persistence strategies in obsidian"
 ```
 
 ---
 
-## 🧪 Pruebas Automatizadas (TDD)
+## 🧪 Testing
 
-El proyecto incluye una suite de pruebas rigurosa que cubre sanitización de rutas, extracción de metadatos, concurrencia en ChromaDB e inferencia ONNX:
-
+Run the automated test suite:
 ```bash
 python3 -m unittest discover -s tests/
 ```
 
 ---
 
-## 📄 Licencia
+## 📄 License
 
-Este proyecto está bajo la Licencia [MIT](LICENSE).
+Licensed under the [MIT License](LICENSE).
