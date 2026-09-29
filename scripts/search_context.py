@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
-search_context.py - Búsqueda semántica vectorial en la bóveda de Obsidian mediante ChromaDB.
-Implementa inferencia local liviana con ONNXRuntime (DefaultEmbeddingFunction) sin
-dependencias invasivas de PyTorch o sentence-transformers, operando sobre la base
-vectorial alojada en obsidian-context/chroma_storage.
+search_context.py - Semantic vector search across Obsidian vault notes via ChromaDB.
+Implements lightweight local inference with ONNXRuntime (DefaultEmbeddingFunction)
+without heavy PyTorch/CUDA dependencies, operating over obsidian-context/chroma_storage.
 """
 
 import os
@@ -25,11 +24,11 @@ def search_semantic_context(
     vault_path: Optional[str] = None
 ) -> str:
     """
-    Ejecuta consulta semántica sobre la base vectorial de obsidian-context en ChromaDB.
-    Retorna JSON estandarizado compatible con herramientas MCP y scripts CLI.
+    Executes a semantic query against ChromaDB in obsidian-context.
+    Returns a standardized JSON response compatible with MCP tools and CLI scripts.
     """
     if not isinstance(concept_query, str) or not concept_query.strip():
-        return json.dumps({"status": "error", "msg": "Consulta vacía o inválida."}, separators=(',', ':'))
+        return json.dumps({"status": "error", "msg": "Empty or invalid query."}, separators=(',', ':'))
 
     target_db = get_chroma_dir(custom_vault=vault_path, custom_chroma=db_path)
 
@@ -39,7 +38,7 @@ def search_semantic_context(
     except ImportError as e:
         return json.dumps({
             "status": "error",
-            "msg": f"Dependencias vectoriales (chromadb) no disponibles: {str(e)}"
+            "msg": f"Vector dependencies (chromadb) unavailable: {str(e)}"
         }, separators=(',', ':'))
 
     try:
@@ -56,7 +55,7 @@ def search_semantic_context(
         if count == 0:
             return json.dumps({
                 "status": "no_results",
-                "msg": f"La base vectorial en {target_db} está vacía. Ejecute sync_vault.py para indexar.",
+                "msg": f"Vector storage at {target_db} is empty. Run sync_vault.py to index.",
                 "data": []
             }, separators=(',', ':'))
 
@@ -88,14 +87,14 @@ def search_semantic_context(
         }, separators=(',', ':'))
 
     except Exception as e:
-        return json.dumps({"status": "error", "msg": f"Fallo en la base vectorial: {str(e)[:150]}"}, separators=(',', ':'))
+        return json.dumps({"status": "error", "msg": f"Vector database error: {str(e)[:150]}"}, separators=(',', ':'))
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Búsqueda semántica en Obsidian ChromaDB.")
-    parser.add_argument("--query", required=True, help="Concepto o consulta semántica")
-    parser.add_argument("--results", type=int, default=3, help="Número de resultados a recuperar")
-    parser.add_argument("--db-path", type=str, default=None, help="Ruta alternativa de ChromaDB")
-    parser.add_argument("--vault", type=str, default=None, help="Ruta alternativa de la bóveda")
+    parser = argparse.ArgumentParser(description="Semantic search in Obsidian ChromaDB.")
+    parser.add_argument("--query", required=True, help="Concept or semantic query text")
+    parser.add_argument("--results", type=int, default=3, help="Number of results to retrieve")
+    parser.add_argument("--db-path", type=str, default=None, help="Custom path to ChromaDB storage")
+    parser.add_argument("--vault", type=str, default=None, help="Custom path to Obsidian vault")
     args = parser.parse_args()
 
     print(search_semantic_context(

@@ -43,3 +43,12 @@ htmlcov/
 # Local OS files
 .DS_Store
 Thumbs.db
+
+# User local configuration
+config.json
+
+# planning-with-files local memory artifacts (exclude from GitHub)
+task_plan.md
+findings.md
+progress.md
+.planning/

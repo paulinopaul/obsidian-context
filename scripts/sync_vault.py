@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-sync_vault.py - Sincronizador de la bóveda de Obsidian hacia ChromaDB.
-Indexa de forma diferencial e incremental las notas de Projects/, Technologies/ y PostMortems/
-almacenadas en la carpeta 'obsidian-context' de la bóveda utilizando embeddings locales ONNX.
+sync_vault.py - Synchronizer between Obsidian Markdown notes and ChromaDB.
+Incrementally indexes notes from Projects/, Technologies/, Strategies/, and PostMortems/
+located in the 'obsidian-context' folder using lightweight local ONNX embeddings.
 """
 
 import os
@@ -24,8 +24,8 @@ def sync_obsidian_vault_to_chroma(
     db_path: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Escanea las carpetas principales de obsidian-context y sincroniza/indexa
-    todas las notas hacia ChromaDB.
+    Scans the primary obsidian-context folders and upserts all Markdown
+    notes into ChromaDB using ONNX embeddings.
     """
     context_dir = resolve_context_dir(vault_path)
     base_vault = vault_path or load_config()["vault_path"]
@@ -37,7 +37,7 @@ def sync_obsidian_vault_to_chroma(
     except ImportError as e:
         return {
             "status": "error",
-            "msg": f"Dependencias vectoriales (chromadb) no disponibles: {str(e)}",
+            "msg": f"Vector dependencies (chromadb) unavailable: {str(e)}",
             "indexed_count": 0
         }
 
@@ -51,13 +51,13 @@ def sync_obsidian_vault_to_chroma(
         )
 
         all_files: List[str] = []
-        # 1. Carpetas dentro de obsidian-context
+        # 1. Folders within obsidian-context
         for folder in TARGET_FOLDERS:
             folder_path = os.path.join(context_dir, folder)
             if os.path.exists(folder_path):
                 all_files.extend(glob.glob(os.path.join(folder_path, "*.md")))
 
-        # 2. Carpetas históricas del vault base si existen
+        # 2. Base vault historical notes if they exist
         if os.path.exists(os.path.join(base_vault, "PostMortems")):
             all_files.extend(glob.glob(os.path.join(base_vault, "PostMortems", "*.md")))
 
@@ -66,7 +66,7 @@ def sync_obsidian_vault_to_chroma(
         if not all_files:
             return {
                 "status": "success",
-                "msg": f"No se encontraron notas en {context_dir} para indexar.",
+                "msg": f"No notes found in {context_dir} to index.",
                 "indexed_count": 0,
                 "context_dir": context_dir
             }
@@ -106,20 +106,20 @@ def sync_obsidian_vault_to_chroma(
             "collection_total": collection.count(),
             "context_dir": context_dir,
             "chroma_dir": chroma_dir,
-            "msg": f"Sincronización completada. {len(ids)} notas indexadas en ChromaDB."
+            "msg": f"Synchronization completed. {len(ids)} notes indexed in ChromaDB."
         }
 
     except Exception as e:
         return {
             "status": "error",
-            "msg": f"Error durante la sincronización: {str(e)[:150]}",
+            "msg": f"Error during synchronization: {str(e)[:150]}",
             "indexed_count": 0
         }
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Sincronizar notas de Obsidian hacia ChromaDB.")
-    parser.add_argument("--vault", type=str, default=None, help="Ruta a la bóveda de Obsidian")
-    parser.add_argument("--db-path", type=str, default=None, help="Ruta al almacenamiento ChromaDB")
+    parser = argparse.ArgumentParser(description="Synchronize Obsidian notes into ChromaDB.")
+    parser.add_argument("--vault", type=str, default=None, help="Path to Obsidian vault")
+    parser.add_argument("--db-path", type=str, default=None, help="Path to ChromaDB storage directory")
     args = parser.parse_args()
 
     result = sync_obsidian_vault_to_chroma(vault_path=args.vault, db_path=args.db_path)
