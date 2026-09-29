@@ -19,37 +19,104 @@ Durante las sesiones de programación en agentes de IA (Antigravity, OpenCode, C
 2. **Visualización en el Obsidian Graph View**: Al conectar automáticamente cada nota de proyecto con fichas técnicas en `Technologies/[[Tecnología]]`, se genera una red visual que muestra la constelación de herramientas utilizadas en todos tus proyectos.
 3. **Analítica de Stack y Recomendación**: Permite a los agentes analizar cuáles son las tecnologías más utilizadas históricamente para un tipo de tarea (`web`, `cli`, `ai`, `networking`) y consultar al usuario si desea reutilizar la pila probada o explorar una alternativa.
 4. **Inferencia Vectorial Liviana (Cero PyTorch/CUDA)**: Utiliza `DefaultEmbeddingFunction` de ChromaDB sobre `ONNXRuntime` local (`all-MiniLM-L6-v2`, 384 dimensiones), eliminando los ~2GB de dependencias pesadas de `sentence-transformers`.
+5. **Aislamiento Limpio en la Bóveda**: Todas las notas, tecnologías y bases vectoriales residen en una subcarpeta dedicada `obsidian-context/` dentro de tu bóveda, evitando saturar o mezclar tus notas personales.
+
+---
+
+## 📂 Configuración de la Bóveda y Estructura de Directorios
+
+> [!IMPORTANT]
+> **Subcarpeta Dedicada en la Bóveda Obligatoria:**
+> Debes crear una carpeta llamada `obsidian-context` dentro de tu bóveda de Obsidian y especificar la ruta en el archivo `config.json` dentro de la skill. Esto garantiza que todos los proyectos, tecnologías y vectores generados por los agentes se almacenen de forma limpia y autónoma.
+
+```
+Tu-Boveda-Obsidian/
+└── obsidian-context/                 <-- Subcarpeta dedicada dentro de tu Bóveda
+    ├── Projects/                     <-- Resúmenes de proyectos cerrados (enlaces [[tech]])
+    ├── Technologies/                 <-- Fichas de catálogo para el Obsidian Graph View
+    ├── Strategies/                   <-- Patrones y arquitecturas aplicadas
+    └── chroma_storage/               <-- Base vectorial ChromaDB local (ONNX)
+```
 
 ---
 
 ## 🏗️ Arquitectura del Repositorio
 
 ```
-obsidian-context/
-├── SKILL.md                  # Especificación estándar Agent Skill (frontmatter, protocolos de agente)
-├── README.md                 # Documentación en inglés y guía de uso
-├── README.es.md              # Documentación en español
-├── LICENSE                   # Licencia de código abierto MIT
-├── pyproject.toml            # Empaquetado estándar Python
-├── .gitignore                # Reglas de exclusión para Git
-├── schema_knowledge.json     # Esquema JSON para herramientas MCP y agentes
-├── task_plan.md              # Artefacto de planificación persistente (planning-with-files)
-├── findings.md               # Registro de descubrimientos de arquitectura
-├── progress.md               # Bitácora de ejecución y resultados de pruebas
-├── scripts/                  # Scripts ejecutables modulares (SOLID)
-│   ├── save_knowledge.py     # Guarda notas de proyecto y actualiza fichas en Technologies/
-│   ├── tech_analytics.py     # Análisis de frecuencias de stack y recomendador por dominio
-│   ├── search_context.py     # Búsqueda semántica vectorial local (ChromaDB + ONNXRuntime)
-│   ├── sync_vault.py         # Sincronizador incremental Bóveda <-> ChromaDB
-│   └── chat_summary_extract.py # Extractor estructurado de notas de sesión
-├── templates/                # Plantillas Markdown estructuradas
-│   ├── project_knowledge.md  # Salida persistente de proyectos (Stack, Decisiones, Código)
-│   ├── technology_hub.md     # Ficha técnica de catálogo en Technologies/
-│   └── postmortem.md         # Plantilla estándar para notas de Post-Mortem
+obsidian-context/                     <-- Directorio de la Skill (~/.agents/skills/obsidian-context)
+├── config.json                       <-- Configuración activa de rutas y carpetas
+├── config.example.json               <-- Plantilla de configuración de ejemplo
+├── SKILL.md                          <-- Especificación Agent Skill y protocolo para modelos
+├── README.md                         <-- Documentación en inglés
+├── README.es.md                      <-- Documentación en español
+├── LICENSE                           <-- Licencia MIT
+├── pyproject.toml                    <-- Empaquetado estándar Python
+├── .gitignore                        <-- Exclusiones de Git
+├── schema_knowledge.json             <-- Esquema JSON para herramientas MCP y agentes
+├── task_plan.md                      <-- Plan persistente (planning-with-files)
+├── findings.md                       <-- Registro de descubrimientos de arquitectura
+├── progress.md                       <-- Bitácora de ejecución y validación TDD
+├── scripts/                          <-- Scripts ejecutables modulares (SOLID)
+│   ├── config.py                     <-- Gestor centralizado de configuración
+│   ├── save_knowledge.py             <-- Guarda notas de proyecto y actualiza Technologies/
+│   ├── tech_analytics.py             <-- Analiza frecuencias de stack y formula recomendaciones
+│   ├── search_context.py             <-- Búsqueda semántica vectorial local (ChromaDB + ONNX)
+│   ├── sync_vault.py                 <-- Sincronizador incremental Bóveda <-> ChromaDB
+│   └── chat_summary_extract.py       <-- Extractor estructurado de notas de sesión
+├── templates/                        <-- Plantillas Markdown estructuradas
+│   ├── project_knowledge.md          <-- Plantilla para resúmenes de proyectos
+│   ├── technology_hub.md             <-- Ficha técnica para catálogo de tecnologías
+│   └── postmortem.md                 <-- Plantilla estándar para Post-Mortems
 ├── references/
-│   └── graph_and_links.md    # Guía de interoperabilidad con Obsidian Graph View
+│   └── graph_and_links.md            <-- Guía de semántica para el Obsidian Graph View
 └── tests/
-    └── test_obsidian_context.py # Suite de pruebas automatizadas TDD
+    └── test_obsidian_context.py       <-- Suite de pruebas unitarias automatizadas (TDD)
+```
+
+---
+
+## 🚀 Instalación y Puesta en Marcha Rápida
+
+### 1. Clonar en el Directorio de Agent Skills
+```bash
+# Directorio estándar global de Agent Skills
+cd ~/.agents/skills
+git clone https://github.com/<tu-usuario>/obsidian-context.git
+cd obsidian-context
+```
+
+### 2. Configurar la Ruta de tu Bóveda en la Skill
+Edita o crea el archivo `config.json` dentro de `~/.agents/skills/obsidian-context/config.json`:
+
+```json
+{
+  "vault_path": "/ruta/a/tu/BovedaObsidian",
+  "context_folder": "obsidian-context",
+  "projects_dir": "Projects",
+  "technologies_dir": "Technologies",
+  "strategies_dir": "Strategies",
+  "chroma_dir": "chroma_storage"
+}
+```
+
+> [!TIP]
+> También puedes definir la variable de entorno en tu `~/.bashrc` o `~/.zshrc`:
+> ```bash
+> export OBSIDIAN_VAULT_PATH="/ruta/a/tu/BovedaObsidian"
+> ```
+
+### 3. Instalar Dependencias
+```bash
+pip install chromadb onnxruntime mcp
+```
+
+### 4. Crear la Carpeta en tu Bóveda y Sincronización Inicial
+```bash
+# Crear la carpeta aislada en tu bóveda
+mkdir -p "/ruta/a/tu/BovedaObsidian/obsidian-context"
+
+# Sincronización inicial de notas existentes
+python3 scripts/sync_vault.py
 ```
 
 ---
@@ -60,8 +127,8 @@ obsidian-context/
 - **Descubrimiento**: Registrada globalmente en `~/.gemini/config/skills.json` (apuntando a `~/.agents/skills`).
 - **Integración MCP**: Expone 4 herramientas nativas en `~/.gemini/config/mcp_config.json`:
   - `tool_query_tech_stack`: Estadísticas de frecuencia y recomendaciones.
-  - `tool_save_project_knowledge`: Guarda resúmenes con wikilinks.
-  - `tool_semantic_search_obsidian`: Recupera contexto técnico histórico.
+  - `tool_save_project_knowledge`: Guarda resúmenes con wikilinks en `obsidian-context/`.
+  - `tool_semantic_search_obsidian`: Recupera contexto técnico histórico desde ChromaDB local.
   - `tool_sync_obsidian_vault`: Sincroniza notas nuevas hacia ChromaDB.
 - **Ciclo de Vida**: El modelo activa búsquedas semánticas durante la planificación inicial (Regla 20) y persiste el conocimiento al concluir el hito.
 
@@ -79,27 +146,6 @@ obsidian-context/
 
 ---
 
-## 🚀 Instalación y Configuración
-
-### 1. Clonar en el Directorio de Agent Skills
-```bash
-cd ~/.agents/skills
-git clone https://github.com/<tu-usuario>/obsidian-context.git
-```
-
-### 2. Instalar Dependencias
-```bash
-pip install chromadb onnxruntime mcp
-```
-
-### 3. Variables de Entorno (Opcionales)
-```bash
-export OBSIDIAN_VAULT_PATH="$HOME/Documents/ObsidianVaults/context_ai"
-export CHROMA_DB_PATH="$OBSIDIAN_VAULT_PATH/chroma_storage"
-```
-
----
-
 ## 💻 Uso por Línea de Comandos (CLI)
 
 ### Analizar Tecnologías Más Utilizadas
@@ -107,9 +153,9 @@ export CHROMA_DB_PATH="$OBSIDIAN_VAULT_PATH/chroma_storage"
 python3 scripts/tech_analytics.py --top 10
 ```
 
-### Recomendar Stack para un Dominio
+### Recomendar Stack para un Dominio Específico
 ```bash
-python3 scripts/tech_analytics.py --domain agent-skills
+python3 scripts/tech_analytics.py --domain backend-rag
 ```
 
 ### Guardar Resumen de Conocimiento de un Proyecto
@@ -124,7 +170,7 @@ python3 scripts/save_knowledge.py \
   --code "def capture(): pass"
 ```
 
-### Sincronizar Bóveda hacia ChromaDB
+### Sincronizar Bóveda hacia ChromaDB Local
 ```bash
 python3 scripts/sync_vault.py
 ```

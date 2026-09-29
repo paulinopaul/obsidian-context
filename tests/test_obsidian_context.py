@@ -38,8 +38,8 @@ class TestObsidianContext(unittest.TestCase):
         self.assertEqual(data["status"], "success")
         self.assertTrue("file" in data)
         
-        # Verificar creación del archivo del proyecto
-        proj_file = os.path.join(self.temp_vault, "Projects", data["file"])
+        # Verificar creación del archivo del proyecto dentro de la subcarpeta obsidian-context
+        proj_file = os.path.join(self.temp_vault, "obsidian-context", "Projects", data["file"])
         self.assertTrue(os.path.exists(proj_file))
         
         with open(proj_file, "r", encoding="utf-8") as f:
@@ -51,8 +51,8 @@ class TestObsidianContext(unittest.TestCase):
             self.assertIn("Asegurar permisos sudo", content)
             self.assertIn("def sniff_packets()", content)
 
-        # Verificar creación/actualización de notas en Technologies/
-        tech_file = os.path.join(self.temp_vault, "Technologies", "Scapy.md")
+        # Verificar creación/actualización de notas en Technologies/ dentro de obsidian-context
+        tech_file = os.path.join(self.temp_vault, "obsidian-context", "Technologies", "Scapy.md")
         self.assertTrue(os.path.exists(tech_file))
         with open(tech_file, "r", encoding="utf-8") as f:
             t_content = f.read()

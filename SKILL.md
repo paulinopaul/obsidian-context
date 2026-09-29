@@ -13,6 +13,22 @@ Habilidad modular para gobernar el conocimiento técnico persistente de los agen
 
 ---
 
+## 📂 Estructura y Configuración de la Bóveda
+
+La skill utiliza `config.json` en su directorio raíz (`~/.agents/skills/obsidian-context/config.json`) para resolver la ruta de la bóveda.
+Todo el contenido persistente se almacena exclusivamente en la subcarpeta aislada `obsidian-context/` dentro de la bóveda del usuario:
+
+```
+Tu-Boveda-Obsidian/
+└── obsidian-context/
+    ├── Projects/         <-- Notas de proyectos finalizados ([[tech]], [[strategy]])
+    ├── Technologies/     <-- Nodos de catálogo para el Obsidian Graph View
+    ├── Strategies/       <-- Fichas de patrones de arquitectura
+    └── chroma_storage/   <-- Almacenamiento vectorial ChromaDB (ONNX)
+```
+
+---
+
 ## 🤖 Protocolo Operativo para Agentes de IA (AGY, OpenCode, Claude Code)
 
 Cualquier modelo ejecutándose bajo Antigravity (AGY), OpenCode o Claude Code debe aplicar esta skill siguiendo este ciclo de vida:
@@ -53,6 +69,7 @@ Una vez finalizada la implementación y superada la suite de pruebas:
 
 ## 🛠️ Herramientas y Scripts Disponibles
 
+- `scripts/config.py`: Gestor centralizado de configuración de rutas (`config.json` y variables de entorno).
 - `scripts/save_knowledge.py`: Genera notas enriquecidas en `Projects/` y actualiza fichas técnicas en `Technologies/` para el Obsidian Graph View.
 - `scripts/tech_analytics.py`: Calcula estadísticas de frecuencias globales y formula recomendaciones contextuales por dominio.
 - `scripts/search_context.py`: Ejecuta búsqueda semántica local con `ChromaDB` y `ONNXRuntime` (`DefaultEmbeddingFunction`).

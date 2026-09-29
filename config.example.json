@@ -1,0 +1,8 @@
+{
+  "vault_path": "/path/to/your/ObsidianVault",
+  "context_folder": "obsidian-context",
+  "projects_dir": "Projects",
+  "technologies_dir": "Technologies",
+  "strategies_dir": "Strategies",
+  "chroma_dir": "chroma_storage"
+}

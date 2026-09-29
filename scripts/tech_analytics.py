@@ -2,7 +2,7 @@
 """
 tech_analytics.py - Analizador de frecuencia de stack tecnológico y recomendador contextual.
 Permite a los modelos y usuarios analizar qué tecnologías se han usado más en la bóveda
-y formular sugerencias para nuevos proyectos (reutilizar pila probada vs. explorar alternativas).
+(dentro de la carpeta 'obsidian-context') y formular sugerencias para nuevos proyectos.
 """
 
 import os
@@ -13,7 +13,10 @@ import argparse
 from collections import Counter, defaultdict
 from typing import Dict, List, Any, Optional
 
-DEFAULT_VAULT_PATH = os.getenv("OBSIDIAN_VAULT_PATH", "/home/paul/Documents/ObsidianVaults/context_ai")
+try:
+    from config import resolve_context_dir, load_config
+except ImportError:
+    from obsidian_context.scripts.config import resolve_context_dir, load_config
 
 def _extract_metadata_from_file(filepath: str) -> Dict[str, Any]:
     """Extrae metadatos básicos y wikilinks de una nota Markdown."""
@@ -75,12 +78,18 @@ def _extract_metadata_from_file(filepath: str) -> Dict[str, Any]:
     return meta
 
 def analyze_technology_stack(vault_path: Optional[str] = None) -> Dict[str, Any]:
-    """Analiza la frecuencia global de tecnologías en todas las notas de proyectos de la bóveda."""
-    vault = vault_path or os.getenv("OBSIDIAN_VAULT_PATH", DEFAULT_VAULT_PATH)
-    project_files = glob.glob(os.path.join(vault, "Projects", "*.md"))
-    # Añadimos PostMortems como histórico complementario
-    project_files.extend(glob.glob(os.path.join(vault, "PostMortems", "*.md")))
+    """Analiza la frecuencia global de tecnologías en notas de proyectos de obsidian-context."""
+    context_dir = resolve_context_dir(vault_path)
+    base_vault = vault_path or load_config()["vault_path"]
 
+    project_files = glob.glob(os.path.join(context_dir, "Projects", "*.md"))
+    # Añadimos notas históricas del vault base si existen
+    if os.path.exists(os.path.join(base_vault, "Projects")):
+        project_files.extend(glob.glob(os.path.join(base_vault, "Projects", "*.md")))
+    if os.path.exists(os.path.join(base_vault, "PostMortems")):
+        project_files.extend(glob.glob(os.path.join(base_vault, "PostMortems", "*.md")))
+
+    project_files = list(set(project_files))
     total_projects = len(project_files)
     tech_counter: Counter = Counter()
     domain_map: Dict[str, List[str]] = defaultdict(list)
@@ -103,6 +112,7 @@ def analyze_technology_stack(vault_path: Optional[str] = None) -> Dict[str, Any]
     return {
         "status": "success",
         "total_projects": total_projects,
+        "context_dir": context_dir,
         "technologies": ranking,
         "strategies": strategies_ranking,
         "domains": {dom: dict(Counter(techs).most_common(5)) for dom, techs in domain_map.items()}
@@ -132,11 +142,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analítica y recomendación de tecnologías en Obsidian.")
     parser.add_argument("--top", type=int, default=10, help="Número de tecnologías top a mostrar")
     parser.add_argument("--domain", type=str, default=None, help="Consultar recomendación para un dominio específico")
+    parser.add_argument("--vault", type=str, default=None, help="Ruta de la bóveda de Obsidian")
     parser.add_argument("--json", action="store_true", help="Salida en formato JSON crudo")
     args = parser.parse_args()
 
     if args.domain:
-        rec = recommend_stack_for_domain(args.domain)
+        rec = recommend_stack_for_domain(args.domain, vault_path=args.vault)
         if args.json:
             print(json.dumps(rec, indent=2))
         else:
@@ -144,7 +155,7 @@ if __name__ == "__main__":
             print(f"Top Tecnologías: {', '.join(rec['top_technologies'])}")
             print(f"Propuesta: {rec['recommendation_prompt']}\n")
     else:
-        stats = analyze_technology_stack()
+        stats = analyze_technology_stack(vault_path=args.vault)
         if args.json:
             print(json.dumps(stats, indent=2))
         else:

@@ -2,7 +2,8 @@
 """
 search_context.py - Búsqueda semántica vectorial en la bóveda de Obsidian mediante ChromaDB.
 Implementa inferencia local liviana con ONNXRuntime (DefaultEmbeddingFunction) sin
-dependencias invasivas de PyTorch o sentence-transformers.
+dependencias invasivas de PyTorch o sentence-transformers, operando sobre la base
+vectorial alojada en obsidian-context/chroma_storage.
 """
 
 import os
@@ -10,18 +11,27 @@ import json
 import argparse
 from typing import Optional, List, Dict, Any
 
-DEFAULT_CHROMA_PATH = os.getenv("CHROMA_DB_PATH", "/home/paul/Documents/ObsidianVaults/context_ai/chroma_storage")
+try:
+    from config import get_chroma_dir, resolve_context_dir
+except ImportError:
+    from obsidian_context.scripts.config import get_chroma_dir, resolve_context_dir
+
 COLLECTION_NAME = "obsidian_memory"
 
-def search_semantic_context(concept_query: str, n_results: int = 3, db_path: Optional[str] = None) -> str:
+def search_semantic_context(
+    concept_query: str,
+    n_results: int = 3,
+    db_path: Optional[str] = None,
+    vault_path: Optional[str] = None
+) -> str:
     """
-    Ejecuta consulta semántica sobre la base vectorial de Obsidian.
+    Ejecuta consulta semántica sobre la base vectorial de obsidian-context en ChromaDB.
     Retorna JSON estandarizado compatible con herramientas MCP y scripts CLI.
     """
     if not isinstance(concept_query, str) or not concept_query.strip():
         return json.dumps({"status": "error", "msg": "Consulta vacía o inválida."}, separators=(',', ':'))
 
-    target_db = db_path or os.getenv("CHROMA_DB_PATH", DEFAULT_CHROMA_PATH)
+    target_db = get_chroma_dir(custom_vault=vault_path, custom_chroma=db_path)
 
     try:
         import chromadb
@@ -35,7 +45,6 @@ def search_semantic_context(concept_query: str, n_results: int = 3, db_path: Opt
     try:
         os.makedirs(target_db, exist_ok=True)
         client = chromadb.PersistentClient(path=target_db)
-        # DefaultEmbeddingFunction utiliza ONNX nativo (all-MiniLM-L6-v2) sin requerir torch ni sentence-transformers
         ef = embedding_functions.DefaultEmbeddingFunction()
         
         collection = client.get_or_create_collection(
@@ -47,7 +56,7 @@ def search_semantic_context(concept_query: str, n_results: int = 3, db_path: Opt
         if count == 0:
             return json.dumps({
                 "status": "no_results",
-                "msg": "La base vectorial está vacía. Ejecute sync_vault.py para indexar la bóveda.",
+                "msg": f"La base vectorial en {target_db} está vacía. Ejecute sync_vault.py para indexar.",
                 "data": []
             }, separators=(',', ':'))
 
@@ -72,7 +81,11 @@ def search_semantic_context(concept_query: str, n_results: int = 3, db_path: Opt
                 "distance": round(distance, 4)
             })
 
-        return json.dumps({"status": "success", "data": formatted_results}, separators=(',', ':'))
+        return json.dumps({
+            "status": "success",
+            "chroma_dir": target_db,
+            "data": formatted_results
+        }, separators=(',', ':'))
 
     except Exception as e:
         return json.dumps({"status": "error", "msg": f"Fallo en la base vectorial: {str(e)[:150]}"}, separators=(',', ':'))
@@ -82,6 +95,12 @@ if __name__ == "__main__":
     parser.add_argument("--query", required=True, help="Concepto o consulta semántica")
     parser.add_argument("--results", type=int, default=3, help="Número de resultados a recuperar")
     parser.add_argument("--db-path", type=str, default=None, help="Ruta alternativa de ChromaDB")
+    parser.add_argument("--vault", type=str, default=None, help="Ruta alternativa de la bóveda")
     args = parser.parse_args()
 
-    print(search_semantic_context(concept_query=args.query, n_results=args.results, db_path=args.db_path))
+    print(search_semantic_context(
+        concept_query=args.query,
+        n_results=args.results,
+        db_path=args.db_path,
+        vault_path=args.vault
+    ))

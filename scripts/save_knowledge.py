@@ -2,7 +2,8 @@
 """
 save_knowledge.py - Guarda el conocimiento técnico persistente de proyectos en Obsidian.
 Genera notas estructuradas con enlaces bidireccionales [[wikilinks]] y mantiene
-las notas de catálogo en Technologies/ para visualización en el Obsidian Graph View.
+las notas de catálogo en Technologies/ dentro de la carpeta aislada 'obsidian-context'
+de la bóveda para visualización en el Obsidian Graph View.
 """
 
 import os
@@ -12,10 +13,10 @@ import argparse
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
-DEFAULT_VAULT_PATH = os.getenv("OBSIDIAN_VAULT_PATH", "/home/paul/Documents/ObsidianVaults/context_ai")
-PROJECTS_DIR = "Projects"
-TECHNOLOGIES_DIR = "Technologies"
-STRATEGIES_DIR = "Strategies"
+try:
+    from config import resolve_context_dir, get_projects_dir, get_technologies_dir
+except ImportError:
+    from obsidian_context.scripts.config import resolve_context_dir, get_projects_dir, get_technologies_dir
 
 def _sanitize_name(name: str) -> str:
     """Sanitiza nombres de proyectos y archivos eliminando caracteres peligrosos y path traversal."""
@@ -25,10 +26,10 @@ def _sanitize_name(name: str) -> str:
     cleaned = re.sub(r'\s+', '_', cleaned)
     return cleaned if cleaned else "default_project"
 
-def _update_technology_hub(tech_name: str, project_name: str, vault_path: str) -> None:
-    """Crea o actualiza la nota de catálogo para una tecnología en Technologies/."""
+def _update_technology_hub(tech_name: str, project_name: str, context_dir: str) -> None:
+    """Crea o actualiza la nota de catálogo para una tecnología en Technologies/ dentro de obsidian-context."""
     safe_tech = _sanitize_name(tech_name)
-    tech_dir = os.path.join(vault_path, TECHNOLOGIES_DIR)
+    tech_dir = os.path.join(context_dir, "Technologies")
     os.makedirs(tech_dir, exist_ok=True)
     tech_file = os.path.join(tech_dir, f"{safe_tech}.md")
     
@@ -103,15 +104,15 @@ def save_project_knowledge(
     vault_path: Optional[str] = None
 ) -> str:
     """
-    Persiste el conocimiento de un proyecto en Obsidian con formato enriquecido y wikilinks.
-    Retorna un JSON serializado con status, file y detalles.
+    Persiste el conocimiento de un proyecto en Obsidian dentro de la subcarpeta 'obsidian-context/Projects'
+    con formato enriquecido y wikilinks. Retorna un JSON serializado con status, file y detalles.
     """
     if not isinstance(project_name, str) or not project_name.strip():
         return json.dumps({"status": "error", "msg": "Nombre de proyecto inválido o vacío."}, separators=(',', ':'))
 
-    vault = vault_path or os.getenv("OBSIDIAN_VAULT_PATH", DEFAULT_VAULT_PATH)
+    context_dir = resolve_context_dir(vault_path)
     safe_slug = _sanitize_name(project_name)
-    target_dir = os.path.join(vault, PROJECTS_DIR)
+    target_dir = os.path.join(context_dir, "Projects")
 
     try:
         os.makedirs(target_dir, exist_ok=True)
@@ -170,17 +171,18 @@ tags:
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
 
-        # Actualizar fichas de tecnologías en Technologies/
+        # Actualizar fichas de tecnologías en Technologies/ dentro de obsidian-context
         for tech in technologies:
             if tech.strip():
-                _update_technology_hub(tech.strip(), project_name, vault)
+                _update_technology_hub(tech.strip(), project_name, context_dir)
 
         return json.dumps({
             "status": "success",
             "file": filename,
             "project": project_name,
             "path": filepath,
-            "msg": "Conocimiento del proyecto persistido exitosamente en Obsidian."
+            "context_dir": context_dir,
+            "msg": "Conocimiento del proyecto persistido exitosamente en obsidian-context."
         }, separators=(',', ':'))
 
     except Exception as e:
@@ -195,6 +197,7 @@ if __name__ == "__main__":
     parser.add_argument("--decisions", default="", help="Decisiones técnicas y alternativas descartadas")
     parser.add_argument("--instructions", default="", help="Directrices e indicaciones aprendidas del chat")
     parser.add_argument("--code", default="", help="Fragmentos de código críticos")
+    parser.add_argument("--vault", default=None, help="Ruta base de la bóveda de Obsidian")
     args = parser.parse_args()
 
     res = save_project_knowledge(
@@ -204,6 +207,7 @@ if __name__ == "__main__":
         strategies=args.strategies,
         decisions=args.decisions,
         instructions_learned=args.instructions,
-        code_snippets=args.code
+        code_snippets=args.code,
+        vault_path=args.vault
     )
     print(res)
