@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "obsidian-context-skill"
+version = "1.0.0"
+description = "Agent Skill for persistent engineering memory, tech stack analytics, and bidirectional linking in Obsidian"
+readme = "README.md"
+authors = [{ name = "Paul" }]
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+dependencies = [
+    "chromadb>=0.4.0",
+    "onnxruntime>=1.14.0",
+    "mcp>=1.0.0"
+]
+requires-python = ">=3.10"
+
+[project.scripts]
+obsidian-context-save = "obsidian_context.scripts.save_knowledge:main"
+obsidian-context-search = "obsidian_context.scripts.search_context:main"
+obsidian-context-analytics = "obsidian_context.scripts.tech_analytics:main"
+obsidian-context-sync = "obsidian_context.scripts.sync_vault:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["scripts*", "templates*", "references*"]

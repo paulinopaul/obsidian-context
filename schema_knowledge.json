@@ -1,0 +1,49 @@
+{
+    "name": "save_project_knowledge",
+    "description": "Almacena el conocimiento técnico estructurado de un proyecto (tecnologías, estrategias, decisiones y directrices) en Obsidian con wikilinks bidireccionales y genera hubs tecnológicos para el graph view.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "project_name": {
+                "type": "string",
+                "description": "Nombre representativo del proyecto o tarea mayor."
+            },
+            "domain": {
+                "type": "string",
+                "description": "Dominio técnico del proyecto (ej. 'web', 'cli', 'ai', 'networking')."
+            },
+            "technologies": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "Lista de tecnologías y librerías utilizadas (ej. ['Python', 'FastAPI', 'ChromaDB'])."
+            },
+            "strategies": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "Estrategias de arquitectura aplicadas (ej. ['TDD', 'SOLID', 'Defensive Programming'])."
+            },
+            "decisions": {
+                "type": "string",
+                "description": "Decisiones críticas tomadas y alternativas descartadas."
+            },
+            "instructions_learned": {
+                "type": "string",
+                "description": "Directrices e indicaciones clave recibidas en el chat para recordar en proyectos futuros."
+            },
+            "code_snippets": {
+                "type": "string",
+                "description": "Fragmentos críticos de código o patrones implementados."
+            }
+        },
+        "required": [
+            "project_name",
+            "domain",
+            "technologies",
+            "strategies"
+        ]
+    }
+}
