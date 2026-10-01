@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-sync_vault.py - Synchronizer between Obsidian Markdown notes and ChromaDB.
-Incrementally indexes notes from Projects/, Technologies/, Strategies/, and PostMortems/
-located in the 'obsidian-context' folder using lightweight local ONNX embeddings.
+sync_vault.py - Lightweight vault status and index validator for obsidian-context.
+Scans Projects/, Decisions/, Technologies/, and Strategies/ inside obsidian-context
+and base vault, verifying markdown files and providing index statistics without
+requiring external vector databases.
 """
 
 import os
@@ -12,114 +13,54 @@ import argparse
 from typing import Optional, Dict, Any, List
 
 try:
-    from config import resolve_context_dir, get_chroma_dir, load_config
+    from config import resolve_context_dir, load_config
 except ImportError:
-    from obsidian_context.scripts.config import resolve_context_dir, get_chroma_dir, load_config
+    from obsidian_context.scripts.config import resolve_context_dir, load_config
 
-COLLECTION_NAME = "obsidian_memory"
-TARGET_FOLDERS = ["Projects", "Technologies", "Strategies"]
+TARGET_FOLDERS = ["Projects", "Decisions", "Technologies", "Strategies"]
 
 def sync_obsidian_vault_to_chroma(
     vault_path: Optional[str] = None,
     db_path: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Scans the primary obsidian-context folders and upserts all Markdown
-    notes into ChromaDB using ONNX embeddings.
+    Backwards-compatible vault indexer and validator.
+    Validates notes across obsidian-context folders and returns inventory metrics.
     """
     context_dir = resolve_context_dir(vault_path)
     base_vault = vault_path or load_config()["vault_path"]
-    chroma_dir = get_chroma_dir(vault_path, db_path)
 
-    try:
-        import chromadb
-        from chromadb.utils import embedding_functions
-    except ImportError as e:
-        return {
-            "status": "error",
-            "msg": f"Vector dependencies (chromadb) unavailable: {str(e)}",
-            "indexed_count": 0
-        }
+    all_files: List[str] = []
+    folder_counts: Dict[str, int] = {}
 
-    try:
-        os.makedirs(chroma_dir, exist_ok=True)
-        client = chromadb.PersistentClient(path=chroma_dir)
-        ef = embedding_functions.DefaultEmbeddingFunction()
-        collection = client.get_or_create_collection(
-            name=COLLECTION_NAME,
-            embedding_function=ef
-        )
+    for folder in TARGET_FOLDERS:
+        folder_path = os.path.join(context_dir, folder)
+        if os.path.exists(folder_path):
+            files = glob.glob(os.path.join(folder_path, "*.md"))
+            folder_counts[folder] = len(files)
+            all_files.extend(files)
+        else:
+            folder_counts[folder] = 0
 
-        all_files: List[str] = []
-        # 1. Folders within obsidian-context
-        for folder in TARGET_FOLDERS:
-            folder_path = os.path.join(context_dir, folder)
-            if os.path.exists(folder_path):
-                all_files.extend(glob.glob(os.path.join(folder_path, "*.md")))
+    if os.path.exists(os.path.join(base_vault, "PostMortems")):
+        pm_files = glob.glob(os.path.join(base_vault, "PostMortems", "*.md"))
+        folder_counts["PostMortems"] = len(pm_files)
+        all_files.extend(pm_files)
 
-        # 2. Base vault historical notes if they exist
-        if os.path.exists(os.path.join(base_vault, "PostMortems")):
-            all_files.extend(glob.glob(os.path.join(base_vault, "PostMortems", "*.md")))
+    all_files = list(set(all_files))
 
-        all_files = list(set(all_files))
-
-        if not all_files:
-            return {
-                "status": "success",
-                "msg": f"No notes found in {context_dir} to index.",
-                "indexed_count": 0,
-                "context_dir": context_dir
-            }
-
-        ids: List[str] = []
-        documents: List[str] = []
-        metadatas: List[Dict[str, Any]] = []
-
-        for fpath in all_files:
-            fname = os.path.basename(fpath)
-            parent_folder = os.path.basename(os.path.dirname(fpath))
-            try:
-                with open(fpath, "r", encoding="utf-8") as f:
-                    content = f.read()
-
-                if content.strip():
-                    ids.append(f"{parent_folder}_{fname}")
-                    documents.append(content)
-                    metadatas.append({
-                        "source": fname,
-                        "folder": parent_folder,
-                        "path": fpath
-                    })
-            except Exception:
-                continue
-
-        if ids:
-            collection.upsert(
-                ids=ids,
-                documents=documents,
-                metadatas=metadatas
-            )
-
-        return {
-            "status": "success",
-            "indexed_count": len(ids),
-            "collection_total": collection.count(),
-            "context_dir": context_dir,
-            "chroma_dir": chroma_dir,
-            "msg": f"Synchronization completed. {len(ids)} notes indexed in ChromaDB."
-        }
-
-    except Exception as e:
-        return {
-            "status": "error",
-            "msg": f"Error during synchronization: {str(e)[:150]}",
-            "indexed_count": 0
-        }
+    return {
+        "status": "success",
+        "indexed_count": len(all_files),
+        "folder_breakdown": folder_counts,
+        "context_dir": context_dir,
+        "msg": f"Vault verified successfully. {len(all_files)} markdown notes active."
+    }
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Synchronize Obsidian notes into ChromaDB.")
+    parser = argparse.ArgumentParser(description="Validate and count Obsidian notes in obsidian-context.")
     parser.add_argument("--vault", type=str, default=None, help="Path to Obsidian vault")
-    parser.add_argument("--db-path", type=str, default=None, help="Path to ChromaDB storage directory")
+    parser.add_argument("--db-path", type=str, default=None, help="Ignored (backwards compatibility)")
     args = parser.parse_args()
 
     result = sync_obsidian_vault_to_chroma(vault_path=args.vault, db_path=args.db_path)

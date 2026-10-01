@@ -211,7 +211,7 @@ class TestObsidianContext(unittest.TestCase):
         self.assertIn(data["status"], ["success", "no_results", "error"])
 
     def test_sync_vault_indexing(self):
-        """Validates that sync_vault reads markdown notes and indexes them into ChromaDB."""
+        """Validates that sync_vault reads markdown notes and indexes them."""
         from save_knowledge import save_project_knowledge
         from sync_vault import sync_obsidian_vault_to_chroma
         from search_context import search_semantic_context
@@ -231,9 +231,33 @@ class TestObsidianContext(unittest.TestCase):
         self.assertEqual(sync_result["status"], "success")
         self.assertGreaterEqual(sync_result["indexed_count"], 1)
         
-        search_res = json.loads(search_semantic_context("local embeddings and vector", n_results=1, db_path=self.chroma_path))
+        search_res = json.loads(search_semantic_context("embeddings and vector", n_results=1, vault_path=self.temp_vault))
         self.assertEqual(search_res["status"], "success")
         self.assertGreaterEqual(len(search_res["data"]), 1)
+
+    def test_save_adr_success(self):
+        """Validates ADR creation with wikilinks and decisions folder."""
+        from save_knowledge import save_adr
+        from search_context import search_semantic_context
+
+        res = save_adr(
+            title="Adopt SQLite over VectorDB",
+            status="accepted",
+            context="Need zero-latency, local search without external dependencies.",
+            decision="Adopt standard library and direct markdown parsing.",
+            consequences="Fast search, zero crashes, zero external deps.",
+            technologies=["Python", "Markdown"],
+            vault_path=self.temp_vault,
+            language="es"
+        )
+        data = json.loads(res)
+        self.assertEqual(data["status"], "success")
+        self.assertTrue(os.path.exists(data["path"]))
+
+        # Verify search finds the ADR
+        search_res = json.loads(search_semantic_context("Adopt SQLite", n_results=1, vault_path=self.temp_vault))
+        self.assertEqual(search_res["status"], "success")
+        self.assertEqual(search_res["data"][0]["source"], data["file"])
 
 if __name__ == "__main__":
     unittest.main()

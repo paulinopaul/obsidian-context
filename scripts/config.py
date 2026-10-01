@@ -19,9 +19,9 @@ def load_config() -> Dict[str, Any]:
         "vault_path": os.getenv("OBSIDIAN_VAULT_PATH", "/home/paul/Documents/ObsidianVaults/context_ai"),
         "context_folder": "obsidian-context",
         "projects_dir": "Projects",
+        "decisions_dir": "Decisions",
         "technologies_dir": "Technologies",
         "strategies_dir": "Strategies",
-        "chroma_dir": "chroma_storage",
         "default_language": "es"
     }
     if os.path.exists(CONFIG_FILE):
@@ -60,6 +60,12 @@ def get_projects_dir(custom_vault: Optional[str] = None) -> str:
     ctx = resolve_context_dir(custom_vault)
     conf = load_config()
     return os.path.join(ctx, conf.get("projects_dir", "Projects"))
+
+def get_decisions_dir(custom_vault: Optional[str] = None) -> str:
+    """Returns the absolute path to the Decisions directory inside obsidian-context."""
+    ctx = resolve_context_dir(custom_vault)
+    conf = load_config()
+    return os.path.join(ctx, conf.get("decisions_dir", "Decisions"))
 
 def get_technologies_dir(custom_vault: Optional[str] = None) -> str:
     """Returns the absolute path to the Technologies directory inside obsidian-context."""
