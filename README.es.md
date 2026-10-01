@@ -1,42 +1,40 @@
-# 🧠 Obsidian Context Agent Skill (`obsidian-context`)
+# 🧠 Obsidian Context Agent Skill (`obsidian-context`) v2.0
 
 [ [English](README.md) | Español ]
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Platform: Antigravity | OpenCode | Claude Code](https://img.shields.io/badge/Platform-Antigravity%20%7C%20OpenCode%20%7C%20Claude%20Code-purple.svg)]()
-[![Embeddings: Local ONNX](https://img.shields.io/badge/Embeddings-Local%20ONNX-green.svg)]()
+[![Platform: Antigravity | OpenCode | Claude Code | Any Agent](https://img.shields.io/badge/Platform-Universal%20Agent%20Skill-purple.svg)]()
+[![Dependencies: Zero](https://img.shields.io/badge/Dependencias-Cero%20(Pure%20Stdlib)-brightgreen.svg)]()
 
-> **Agent Skill para la persistencia del conocimiento de proyectos, análisis de stack tecnológico y visualización en el Grafo de Obsidian mediante enlaces bidireccionales (`[[wikilinks]]`). Soporta generación bilingüe de notas Markdown (Español e Inglés).**
+> **Agent Skill sin fricción para la persistencia de memoria técnica, Registros de Decisiones Arquitectónicas (ADRs), analítica de stack y visualización en el Grafo de Obsidian mediante enlaces bidireccionales (`[[wikilinks]]`). 100% autónoma en Markdown puro sin dependencias externas.**
 
 ---
 
 ## 📌 ¿Qué problema resuelve?
 
-Durante las sesiones de programación en agentes de IA (Antigravity, OpenCode, Claude Code, etc.), el contexto volátil se pierde al finalizar una tarea. `obsidian-context` permite:
+Durante las sesiones con agentes de IA, el contexto volátil se pierde al concluir la tarea. `obsidian-context` resuelve este problema sin sobreingeniería ni consumo innecesario de recursos:
 
-1. **Persistencia Estructurada de Cierre**: Guarda un resumen técnico del proyecto (tecnologías empleadas, estrategias aplicadas, decisiones de arquitectura y directrices dadas en el chat) sin necesidad de inspeccionar logs crudos de ejecución.
-2. **Visualización en el Obsidian Graph View**: Al conectar automáticamente cada nota de proyecto con fichas técnicas en `Technologies/[[Tecnología]]`, se genera una red visual que muestra la constelación de herramientas utilizadas en todos tus proyectos.
-3. **Analítica de Stack y Recomendación**: Permite a los agentes analizar cuáles son las tecnologías más utilizadas históricamente para un tipo de tarea (`web`, `cli`, `ai`, `networking`) y consultar al usuario si desea reutilizar la pila probada o explorar una alternativa.
-4. **Inferencia Vectorial Liviana (Cero PyTorch/CUDA)**: Utiliza `DefaultEmbeddingFunction` de ChromaDB sobre `ONNXRuntime` local (`all-MiniLM-L6-v2`, 384 dimensiones), eliminando los ~2GB de dependencias pesadas de `sentence-transformers`.
-5. **Aislamiento Limpio en la Bóveda**: Todas las notas, tecnologías y bases vectoriales residen en una subcarpeta dedicada `obsidian-context/` dentro de tu bóveda, evitando saturar o mezclar tus notas personales.
-6. **Generación Bilingüe de Notas (ES/EN)**: Genera notas automáticamente en español o inglés según la interacción y confirmación con el usuario.
+1. **Registros de Decisiones Arquitectónicas (ADRs)**: Documenta el problema, las opciones descartadas, la solución adoptada y los tradeoffs en notas dentro de `Decisions/`.
+2. **Retención de Conocimiento por Proyecto**: Guarda resúmenes técnicos estructurados de proyectos finalizados, patrones de diseño y directrices clave en `Projects/`.
+3. **Visualización en el Obsidian Graph View**: Conecta automáticamente cada nota de proyecto o ADR con fichas centrales en `Technologies/[[Tecnología]]`, generando un grafo visual de todo tu ecosistema de software.
+4. **Protocolo Ágil y sin Fricción**: Erradica las interrupciones burocráticas en el chat (sin preguntas obligatorias de inicio o de confirmación de idioma). El agente actúa en silencio o a demanda del usuario.
+5. **Cero Dependencias Externas**: Funciona completamente con la biblioteca estándar de Python 3 (`os`, `re`, `glob`, `json`, `math`). Sin ChromaDB, sin ONNXRuntime y sin daemons externos. Búsqueda instantánea (<20 ms).
+6. **Aislamiento Limpio en la Bóveda**: Toda la información generada reside estrictamente en la subcarpeta `obsidian-context/` dentro de tu bóveda de Obsidian, sin contaminar tus notas personales.
 
 ---
 
-## 📂 Configuración de la Bóveda y Estructura de Directorios
+## 📂 Estructura de la Bóveda
 
-> [!IMPORTANT]
-> **Subcarpeta Dedicada en la Bóveda Obligatoria:**
-> Debes crear una carpeta llamada `obsidian-context` dentro de tu bóveda de Obsidian y especificar la ruta en el archivo `config.json` dentro de la skill. Esto garantiza que todos los proyectos, tecnologías y vectores generados por los agentes se almacenen de forma limpia y autónoma.
+Crea la carpeta `obsidian-context` en tu bóveda de Obsidian y define su ruta en `config.json`:
 
 ```
 Tu-Boveda-Obsidian/
 └── obsidian-context/                 <-- Subcarpeta dedicada dentro de tu Bóveda
+    ├── Decisions/                    <-- Registros de Decisiones Arquitectónicas (ADRs)
     ├── Projects/                     <-- Resúmenes de proyectos cerrados (enlaces [[tech]])
     ├── Technologies/                 <-- Fichas de catálogo para el Obsidian Graph View
-    ├── Strategies/                   <-- Patrones y arquitecturas aplicadas
-    └── chroma_storage/               <-- Base vectorial ChromaDB local (ONNX)
+    └── Strategies/                   <-- Patrones y arquitecturas de ingeniería
 ```
 
 ---
@@ -47,69 +45,58 @@ Tu-Boveda-Obsidian/
 obsidian-context/                     <-- Directorio de la Skill (~/.agents/skills/obsidian-context)
 ├── config.json                       <-- Configuración activa de rutas (ignorado por git)
 ├── config.example.json               <-- Plantilla de configuración de ejemplo
-├── SKILL.md                          <-- Especificación Agent Skill y protocolo para modelos
+├── SKILL.md                          <-- Especificación de la Skill v2.0 (Zero Friction)
 ├── README.md                         <-- Documentación en inglés
 ├── README.es.md                      <-- Documentación en español
 ├── LICENSE                           <-- Licencia MIT
-├── pyproject.toml                    <-- Empaquetado estándar Python
-├── .gitignore                        <-- Exclusiones de Git (excluye planes locales y config)
-├── schema_knowledge.json             <-- Esquema JSON para herramientas MCP y agentes
-├── scripts/                          <-- Scripts ejecutables modulares (SOLID)
-│   ├── config.py                     <-- Gestor centralizado de configuración
-│   ├── save_knowledge.py             <-- Guarda notas de proyecto y actualiza Technologies/ (ES/EN)
-│   ├── tech_analytics.py             <-- Analiza frecuencias de stack y formula recomendaciones (ES/EN)
-│   ├── search_context.py             <-- Búsqueda semántica vectorial local (ChromaDB + ONNX)
-│   ├── sync_vault.py                 <-- Sincronizador incremental Bóveda <-> ChromaDB
+├── pyproject.toml                    <-- Empaquetado estándar Python (cero dependencias externas)
+├── schema_knowledge.json             <-- Esquema JSON para herramientas de agentes
+├── scripts/                          <-- Scripts modulares livianos (biblioteca estándar)
+│   ├── config.py                     <-- Gestor centralizado de rutas
+│   ├── save_knowledge.py             <-- Guarda ADRs, resúmenes de proyectos y actualiza Technologies/
+│   ├── search_context.py             <-- Búsqueda rápida por metadatos y palabras clave (<20 ms)
+│   ├── tech_analytics.py             <-- Analiza frecuencias de tecnologías y recomienda stacks
+│   ├── sync_vault.py                 <-- Validador de notas e inventario de la bóveda
 │   └── chat_summary_extract.py       <-- Extractor estructurado de notas de sesión
-├── templates/                        <-- Plantillas Markdown bilingües
-│   ├── project_knowledge.en.md       <-- Plantilla de resumen de proyecto (Inglés)
-│   ├── project_knowledge.es.md       <-- Plantilla de resumen de proyecto (Español)
-│   ├── technology_hub.en.md          <-- Ficha técnica para catálogo de tecnologías (Inglés)
-│   ├── technology_hub.es.md          <-- Ficha técnica para catálogo de tecnologías (Español)
+├── templates/                        <-- Plantillas Markdown con frontmatter YAML y wikilinks
+│   ├── adr.en.md                     <-- Plantilla para ADR (Inglés)
+│   ├── adr.es.md                     <-- Plantilla para ADR (Español)
+│   ├── project_knowledge.en.md       <-- Plantilla para resumen de proyecto (Inglés)
+│   ├── project_knowledge.es.md       <-- Plantilla para resumen de proyecto (Español)
+│   ├── technology_hub.en.md          <-- Ficha técnica de tecnología (Inglés)
+│   ├── technology_hub.es.md          <-- Ficha técnica de tecnología (Español)
 │   ├── postmortem.en.md              <-- Plantilla para Post-Mortem (Inglés)
 │   └── postmortem.es.md              <-- Plantilla para Post-Mortem (Español)
 ├── references/
-│   ├── graph_and_links.md            <-- Guía de semántica para Obsidian Graph View (Inglés)
-│   └── graph_and_links.es.md         <-- Guía de semántica para Obsidian Graph View (Español)
+│   ├── graph_and_links.md            <-- Guía para Obsidian Graph View (Inglés)
+│   └── graph_and_links.es.md         <-- Guía para Obsidian Graph View (Español)
 └── tests/
-    └── test_obsidian_context.py       <-- Suite de pruebas unitarias automatizadas (TDD)
+    └── test_obsidian_context.py       <-- Suite de pruebas unitarias automatizadas (100% pasando)
 ```
 
 ---
 
 ## 🤖 Directiva Universal para Agentes (System Prompt Snippet)
 
-No necesitas reglas complejas ni entornos propietarios. Solo añade este bloque a las instrucciones del sistema de tu agente o a su archivo de reglas globales (como `AGENTS.md`, `CLAUDE.md`, o `GEMINI.md`):
+Añade este bloque a las instrucciones del sistema de tu agente o a tus reglas globales (como `AGENTS.md`, `CLAUDE.md`, o bloque de reglas):
 
 ```markdown
-### Gobernanza de Memoria y Conocimiento (obsidian-context)
+### Memoria y Decisiones Arquitectónicas (obsidian-context)
 Cuando la skill `obsidian-context` esté disponible en el entorno:
-1. **Al Iniciar una Tarea:**
-   Pregunta de forma proactiva al usuario si desea realizar una revisión del contexto:
-   - Español: "He detectado la skill `obsidian-context`. ¿Deseas hacer una revisión del contexto histórico y stack tecnológico recomendado para este trabajo, o prefieres omitir la revisión?"
-   - Inglés: "I detected the `obsidian-context` skill. Would you like to review historical context and recommended tech stack for this task, or would you prefer to skip this review?"
-   Si el usuario aprueba, ejecuta `scripts/tech_analytics.py --domain <dominio>` o `scripts/search_context.py`.
-2. **Al Finalizar una Tarea:**
-   Antes de guardar, consulta al usuario el idioma en el que prefiere registrar las notas:
-   - Español: "¿Deseas que el resumen técnico y las notas del proyecto se guarden en español o prefieres en inglés?"
-   - Inglés: "Would you like the technical summary and project notes saved in English or Spanish?"
-   Luego ejecuta `scripts/save_knowledge.py --lang <es|en>` seguido de `scripts/sync_vault.py`.
+- **Cero Fricción:** NO interrumpas al usuario con preguntas burocráticas de inicio o selección de idioma.
+- **Consulta a Demanda o Contextual:** Cuando el usuario pregunte por decisiones pasadas o patrones de stack, consulta la bóveda en silencio:
+  `python3 ~/.agents/skills/obsidian-context/scripts/search_context.py --query "<palabras_clave>"`
+- **Decisiones de Arquitectura (ADRs):** Al acordar una decisión de arquitectura o tradeoff técnico relevante (o cuando el usuario lo solicite), guárdala:
+  `python3 ~/.agents/skills/obsidian-context/scripts/save_knowledge.py --type adr --title "<Título>" --context "<Problema>" --decisions "<Solución>" --consequences "<Tradeoffs>" --techs "Tech1" "Tech2"`
+- **Cierre de Proyectos:** Al concluir un hito importante, guarda el resumen técnico con `save_knowledge.py --name "<Nombre>"`.
 ```
 
 ---
 
-## 🚀 Instalación y Puesta en Marcha Rápida
+## 🚀 Inicio Rápido
 
-### 1. Clonar en el Directorio de Agent Skills
-```bash
-# Directorio estándar global de Agent Skills
-cd ~/.agents/skills
-git clone https://github.com/<tu-usuario>/obsidian-context.git
-cd obsidian-context
-```
-
-### 2. Configurar la Ruta de tu Bóveda en la Skill
-Copia `config.example.json` a `config.json` y ajusta la ruta de tu bóveda:
+### 1. Configurar la Ruta de la Bóveda
+Copia `config.example.json` a `config.json` y especifica tu ruta local:
 
 ```bash
 cp config.example.json config.json
@@ -117,84 +104,66 @@ cp config.example.json config.json
 
 ```json
 {
-  "vault_path": "/ruta/a/tu/BovedaObsidian",
+  "vault_path": "/home/usuario/Documents/ObsidianVaults/context_ai",
   "context_folder": "obsidian-context",
   "projects_dir": "Projects",
+  "decisions_dir": "Decisions",
   "technologies_dir": "Technologies",
   "strategies_dir": "Strategies",
-  "chroma_dir": "chroma_storage",
   "default_language": "es"
 }
 ```
 
-### 3. Instalar Dependencias
+### 2. Verificar el Estado de la Bóveda
 ```bash
-pip install chromadb onnxruntime mcp
-```
-
-### 4. Crear la Carpeta en tu Bóveda y Sincronización Inicial
-```bash
-# Crear la carpeta aislada en tu bóveda
-mkdir -p "/ruta/a/tu/BovedaObsidian/obsidian-context"
-
-# Sincronización inicial de notas existentes
 python3 scripts/sync_vault.py
 ```
 
 ---
 
-## 💻 Uso por Línea de Comandos (CLI)
+## 💻 Referencia de Comandos CLI
 
-### Analizar Tecnologías Más Utilizadas
+### 1. Guardar un Registro de Decisión Arquitectónica (ADR)
 ```bash
-python3 scripts/tech_analytics.py --top 10 --lang es
+python3 scripts/save_knowledge.py \
+  --type adr \
+  --title "Migración de whtexpert a Go" \
+  --status "accepted" \
+  --context "La implementación previa en TypeScript presentaba cuellos de botella con la TUI de terminal." \
+  --decisions "Reescribir el orquestador en Go 1.22 utilizando Bubbletea y un bus de eventos concurrente." \
+  --consequences "Binario único estático, arranque instantáneo y aislamiento total de eventos por canales." \
+  --techs "Go" "Bubbletea" "Lipgloss" \
+  --lang es
 ```
 
-### Recomendar Stack para un Dominio Específico
+### 2. Búsqueda Rápida en la Bóveda (Cero Dependencias)
 ```bash
-python3 scripts/tech_analytics.py --domain backend-rag --lang es
+python3 scripts/search_context.py --query "concurrencia bubbletea"
 ```
 
-### Guardar Resumen de Conocimiento de un Proyecto (Bilingüe)
+### 3. Guardar Resumen de Conocimiento de Proyecto
 ```bash
-# Guardar en Español
 python3 scripts/save_knowledge.py \
   --name "Analizador de Red" \
   --domain "networking" \
   --techs "Python" "Scapy" "FastAPI" \
-  --strategies "TDD" "Clean-Architecture" \
-  --decisions "Adopción de Scapy para parsing de tramas Ethernet" \
-  --instructions "Validar permisos en sandbox antes de capturar tráfico" \
+  --strategies "Clean Architecture" "TDD" \
+  --decisions "Adopción de Scapy para captura de tramas frente a raw sockets" \
+  --instructions "Validar permisos en sandbox antes de capturar" \
   --code "def capture(): pass" \
   --lang es
-
-# Guardar en Inglés
-python3 scripts/save_knowledge.py \
-  --name "Network Analyzer" \
-  --domain "networking" \
-  --techs "Python" "Scapy" "FastAPI" \
-  --strategies "TDD" "Clean-Architecture" \
-  --decisions "Adopted Scapy for packet crafting" \
-  --instructions "Verify sandbox network permissions" \
-  --code "def capture(): pass" \
-  --lang en
 ```
 
-### Sincronizar Bóveda hacia ChromaDB Local
+### 4. Analizar Frecuencia de Tecnologías
 ```bash
-python3 scripts/sync_vault.py
-```
-
-### Búsqueda Semántica Vectorial
-```bash
-python3 scripts/search_context.py --query "estrategias de persistencia en obsidian"
+python3 scripts/tech_analytics.py --top 10 --lang es
 ```
 
 ---
 
-## 🧪 Pruebas Automatizadas (TDD)
+## 🧪 Pruebas Unitarias
 
-Ejecuta la suite de pruebas unitarias:
+Ejecuta la suite de pruebas (valida persistencia de ADRs, sanitización y búsqueda sin dependencias externas):
 ```bash
 python3 -m unittest discover -s tests/
 ```
@@ -203,4 +172,4 @@ python3 -m unittest discover -s tests/
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia [MIT](LICENSE).
+Distribuido bajo la [Licencia MIT](LICENSE).

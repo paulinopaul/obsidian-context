@@ -1,49 +1,73 @@
 {
     "name": "save_project_knowledge",
-    "description": "Almacena el conocimiento técnico estructurado de un proyecto (tecnologías, estrategias, decisiones y directrices) en Obsidian con wikilinks bidireccionales y genera hubs tecnológicos para el graph view.",
+    "description": "Almacena conocimiento técnico estructurado o Registros de Decisión Arquitectónica (ADRs) en Obsidian con wikilinks bidireccionales y hubs tecnológicos para el graph view.",
     "parameters": {
         "type": "object",
         "properties": {
-            "project_name": {
+            "type": {
                 "type": "string",
-                "description": "Nombre representativo del proyecto o tarea mayor."
+                "enum": ["project", "adr"],
+                "description": "Tipo de registro a guardar ('project' para resumen técnico o 'adr' para decisión de arquitectura)."
+            },
+            "name": {
+                "type": "string",
+                "description": "Nombre representativo del proyecto o título de la decisión arquitectónica (ADR)."
+            },
+            "status": {
+                "type": "string",
+                "enum": ["proposed", "accepted", "superseded", "deprecated"],
+                "description": "Estado del ADR (por defecto 'accepted')."
             },
             "domain": {
                 "type": "string",
-                "description": "Dominio técnico del proyecto (ej. 'web', 'cli', 'ai', 'networking')."
+                "description": "Dominio técnico (ej. 'web', 'cli', 'ai', 'networking', 'architecture')."
             },
             "technologies": {
                 "type": "array",
                 "items": {
                     "type": "string"
                 },
-                "description": "Lista de tecnologías y librerías utilizadas (ej. ['Python', 'FastAPI', 'ChromaDB'])."
+                "description": "Lista de tecnologías y librerías utilizadas (ej. ['Python', 'FastAPI', 'Go', 'Bubbletea'])."
             },
             "strategies": {
                 "type": "array",
                 "items": {
                     "type": "string"
                 },
-                "description": "Estrategias de arquitectura aplicadas (ej. ['TDD', 'SOLID', 'Defensive Programming'])."
+                "description": "Estrategias o patrones aplicados (ej. ['Clean Architecture', 'TDD', 'Event Bus'])."
+            },
+            "context": {
+                "type": "string",
+                "description": "Definición del problema o fuerzas en juego para un ADR."
             },
             "decisions": {
                 "type": "string",
-                "description": "Decisiones críticas tomadas y alternativas descartadas."
+                "description": "Decisión tomada y justificación técnica."
+            },
+            "alternatives": {
+                "type": "string",
+                "description": "Opciones descartadas y motivos del descarte."
+            },
+            "consequences": {
+                "type": "string",
+                "description": "Impacto y tradeoffs (consecuencias positivas y negativas)."
             },
             "instructions_learned": {
                 "type": "string",
-                "description": "Directrices e indicaciones clave recibidas en el chat para recordar en proyectos futuros."
+                "description": "Directrices e indicaciones clave aprendidas en la sesión."
             },
             "code_snippets": {
                 "type": "string",
                 "description": "Fragmentos críticos de código o patrones implementados."
+            },
+            "lang": {
+                "type": "string",
+                "enum": ["es", "en"],
+                "description": "Idioma de salida de la nota ('es' o 'en')."
             }
         },
         "required": [
-            "project_name",
-            "domain",
-            "technologies",
-            "strategies"
+            "name"
         ]
     }
 }

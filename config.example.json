@@ -2,7 +2,8 @@
   "vault_path": "/path/to/your/ObsidianVault",
   "context_folder": "obsidian-context",
   "projects_dir": "Projects",
+  "decisions_dir": "Decisions",
   "technologies_dir": "Technologies",
   "strategies_dir": "Strategies",
-  "chroma_dir": "chroma_storage"
+  "default_language": "es"
 }
